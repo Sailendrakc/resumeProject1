@@ -1,10 +1,18 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export function App() {
+export function App({ symbols, watchPriceFn, unwatchPriceFn }) {
   return (
     <>
-      <p>Hello</p>
+      <div id="panels">
+        <LeftPanel
+          symbols={symbols}
+          watchPriceFn={watchPriceFn}
+          unwatchPriceFn={unwatchPriceFn}
+        />
+        <MainPanel />
+      </div>
+      <FooterPanel />
     </>
   );
 }
@@ -14,20 +22,77 @@ export function App() {
  * @param {*} param0
  * @returns Bar UI with coin name and price.
  */
-export function Bar({ coinAbbr, coinPrice, onClick, onRemove, onPriceUpdate }) {
-  const [price, setPrice] = useState(coinPrice);
+function Bar({ symbol, watchFn, unwatchFn }) {
+  let [price, setPrice] = useState(5);
+  let [color, setColor] = useState({ color: "black" });
 
-  function performPriceUpdate(newPrice) {
-    //Set new price
-    setPrice(newPrice);
+  useEffect(() => {
+    function updatePrice(data) {
+      setPrice((oldPrice) => {
+        console.log("old Price: " + oldPrice + " , new price: " + data.p);
+        if (oldPrice > parseFloat(data.p)) {
+          setColor({ color: "red" });
+        }
 
-    //color code text according to up or down price movement
-  }
+        if (oldPrice < parseFloat(data.p)) {
+          setColor({ color: "green" });
+        }
+
+        return parseFloat(data.p);
+      });
+    }
+
+    watchFn(symbol.toLowerCase() + "@trade", updatePrice);
+
+    function retFn() {
+      unwatchFn(symbol.toLowerCase() + "@trade");
+    }
+    return retFn;
+  }, []);
+
+  console.log("bar rerendered price is: " + price);
 
   return (
     <div className="barHolder">
-      <h6 className="coinAbbr">{coinAbbr}</h6>
-      <h6 className="coinPrice">{price}</h6>
+      <h6 className="coinAbbr" style={color}>
+        {symbol}
+      </h6>
+      <h6 className="coinPrice" style={color}>
+        {price}
+      </h6>
     </div>
   );
+}
+
+function LeftPanel({ symbols, watchPriceFn, unwatchPriceFn }) {
+  //go thru symbols and create bars accordingly.
+  let barList = [];
+  if (!symbols || !symbols["topSymbols"]) {
+    return <div id="leftPanel"></div>;
+  }
+
+  for (let i = 0; i < 5; i++) {
+    let symName = symbols["topSymbols"][i];
+    let barItem = (
+      <Bar
+        symbol={symName}
+        watchFn={watchPriceFn}
+        unwatchFn={unwatchPriceFn}
+        key={symName}
+      />
+    );
+
+    barList.push(barItem);
+  }
+
+  //not reusing this panel, tahts why id
+  return <div id="leftPanel">{barList}</div>;
+}
+
+function MainPanel() {
+  return <div id="mainPanel"></div>;
+}
+
+function FooterPanel() {
+  return <div id="footer"></div>;
 }

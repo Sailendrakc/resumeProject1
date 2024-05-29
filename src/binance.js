@@ -5,6 +5,10 @@ let streamWS = new WebSocket(streamEndPoint);
 let normWS = new WebSocket(normEndPoint);
 
 let allSymbolID = "norm-allSymbols";
+let allSymbolsReqCB = null;
+let allSymbolObj = null;
+
+//https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#aggregate-trade-streams
 
 streamWS.addEventListener("error", (e) => {
   console.log("streamWS Error: ", e);
@@ -12,6 +16,7 @@ streamWS.addEventListener("error", (e) => {
 
 streamWS.addEventListener("open", (e) => {
   console.log("streamWS open: ", e);
+  console.log("Stream websocket connected");
   //watchTicker("btcusdt", test);
   //watchAllTickers();
 });
@@ -30,7 +35,7 @@ normWS.addEventListener("error", (e) => {
 
 normWS.addEventListener("open", (e) => {
   console.log("streamWS open: ", e);
-  getAllSymbols();
+  console.log("Normal websocket connected");
 });
 
 normWS.addEventListener("close", (e) => {
@@ -43,7 +48,7 @@ normWS.addEventListener("message", (e) => {
 
 //we want to get ticker data
 
-let watchList = [];
+let watchList = new Map();
 let tickerCallback;
 
 function symbolValidator(symbol) {
@@ -54,27 +59,13 @@ function symbolValidator(symbol) {
   return true;
 }
 
-function watchTicker(symbol, callback) {
+export async function watchTicker(requestKey, callback) {
   if (streamWS.readyState != streamWS.OPEN) {
     console.log("Websocket is not connected. Please try connecting first");
     return false;
   }
 
-  if (!symbol || typeof symbol !== "string") {
-    return false;
-  }
-
-  if (!callback && watchList.length == 0) {
-    console.log("Need a callback function to call on ticker data");
-    return false;
-  }
-
-  if (callback && watchList.length > 0) {
-    console.log("We already have callback function, this will be ignored");
-  }
-
-  if (watchList.includes(symbol)) {
-    console.log("Already watching symbol: " + symbol);
+  if (!requestKey || typeof requestKey !== "string" || !callback) {
     return false;
   }
 
@@ -83,32 +74,38 @@ function watchTicker(symbol, callback) {
   let sdata = JSON.stringify({
     id: 1,
     method: "SUBSCRIBE",
-    params: [symbol + "@aggTrade"],
+    params: [requestKey],
   });
 
   streamWS.send(sdata);
+  let delay = (ms) => new Promise((res) => setTimeout(res, ms));
+  await delay(500);
 
-  if (watchList.length == 0) {
-    tickerCallback = callback;
+  if (!watchList[requestKey]) {
+    watchList[requestKey] = [callback];
+    console.log("new cb added to watchlist");
+  } else {
+    watchList[requestKey].push(callback);
+    console.log("new cb added to existing watchlist");
   }
-  watchList.push(symbol);
 }
 
-function unwatchTicker(symbol) {
-  if (!symbol) {
+export async function unwatchTicker(symbolKey) {
+  if (!symbolKey) {
     return;
   }
 
-  let index = watchList.indexOf(symbol);
+  let index = watchList.indexOf(symbolKey);
   if (index > -1) {
     let sdata = JSON.stringify({
       id: 2,
       method: "UNSUBSCRIBE",
-      params: [symbol + "@aggTrade"],
+      params: [symbolKey],
     });
 
     streamWS.send(sdata);
-
+    let delay = (ms) => new Promise((res) => setTimeout(res, ms));
+    await delay(500);
     watchList.splice(index, 1);
 
     if (watchList.length == 0) {
@@ -139,7 +136,12 @@ function unwatchAllTickers() {
   streamWS.send(sdata);
 }
 
-function getAllSymbols() {
+//Call this function to get all the symbols from binance exchange.
+//We will get the symbols in callback fn
+export async function getAllSymbols(callback) {
+  let delay = (ms) => new Promise((res) => setTimeout(res, ms));
+  await delay(5000);
+
   if (normWS.readyState != normWS.OPEN) {
     console.log(
       "Normal websocket is not connected. Please connect or wait for it to connect"
@@ -148,13 +150,14 @@ function getAllSymbols() {
   }
 
   let payload = JSON.stringify({
-    id: "norm-allsymbols",
+    id: allSymbolID,
     method: "exchangeInfo",
     params: {
       permissions: "SPOT",
     },
   });
 
+  allSymbolsReqCB = callback;
   normWS.send(payload);
 }
 
@@ -164,41 +167,68 @@ function processReceivedMSG(e) {
     console.log("Parsed data: " + new Date().toString() + " :", e.parsedData);
   }
 
+  //incoming data has info about all the symbols that we queiried with getAllSymbols() fn
   if (e.parsedData.id == allSymbolID) {
+    if (!e.parsedData.result) {
+      //its just confirmation response to request and not the actual result.
+      return;
+    }
+
     //just get USDT quoted pair names
     let nameArray = {
       id: allSymbolID,
       symbols: [],
+      topSymbols: [],
     };
-    e.parsedData.results.symbols.forEach((element) => {
+    e.parsedData.result["symbols"].forEach((element) => {
       if (element.quoteAsset == "USDT") {
-        nameArray.symbols.push(symObj);
+        nameArray["symbols"].push(element);
       }
     });
 
-    //callback that array
-    getSymbolsCB(nameArray);
-  }
-}
+    // also make list of top coin pair to always show
+    nameArray["topSymbols"] = [
+      "BTCUSDT",
+      "BNBUSDT",
+      "ETHUSDT",
+      "SOLUSDT",
+      "XRPUSDT",
+      "ADAUSDT",
+      "AVAXUSDT",
+      "TRXUSDT",
+      "BCHUSDT",
+      "NEARUSDT",
+      "LINKUSDT",
+      "MATICUSDT",
+      "LTCUSDT",
+      "PEPEUSDT",
+      "ATOMUSDT",
+    ];
 
-function getSymbolsCB(symbolData) {
-  //now store that symbol data, create buttons and bars accordingly,
-  // also make list of top coin pair to always show
-  symbolData[topSymbols] = [
-    "BTCUSDT",
-    "BNBUSDT",
-    "ETHUSDT",
-    "SOLUSDT",
-    "XRPUSDT",
-    "ADAUSDT",
-    "AVAXUSDT",
-    "TRXUSDT",
-    "BCHUSDT",
-    "NEARUSDT",
-    "LINKUSDT",
-    "MATICUSDT",
-    "LTCUSDT",
-    "PEPEUSDT",
-    "ATOMUSDT",
-  ];
+    allSymbolObj = nameArray;
+    if (allSymbolsReqCB) {
+      allSymbolsReqCB(nameArray);
+    }
+  }
+
+  //if it is price data, 1 is price id, TODO, MAKE IT A VARIABLE
+  if (e.parsedData.e == "trade") {
+    //https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#aggregate-trade-streams
+
+    e.parsedData.p = parseFloat(e.parsedData.p).toString();
+    let reqKey = e.parsedData.s.toLowerCase() + "@" + e.parsedData.e;
+    let cbArray = watchList[reqKey];
+
+    if (!cbArray || cbArray.length == 0) {
+      //unsubscribe
+      unwatchTicker(reqKey);
+    }
+    try {
+      cbArray.forEach((cb) => {
+        cb(e.parsedData);
+      });
+    } catch {
+      debugger;
+    }
+  }
 }

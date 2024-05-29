@@ -1,3 +1,27 @@
+#leftPanel {
+  width: 300px;
+  height: 100%;
+  display: inline-block;
+  flex-direction: column;
+  background-color: cornflowerblue;
+  font-size: 16px;
+}
+
+#mainPanel {
+  width: calc(100% - 300px);
+  height: 100%;
+  display: inline-block;
+  background-color: gray;
+  font-size: 16px;
+}
+
+#footer {
+  height: 50px;
+  width: 100%;
+  background-color: brown;
+  font-size: 16px;
+}
+
 .coinPrice {
   display: inline-block;
   width: 60%;
@@ -11,8 +35,16 @@
 }
 
 .barHolder {
-  display: inline-block;
+  display: block;
   min-width: 100px;
-  min-width: 60px;
+  width: calc(100% - 2px);
   border: 1px solid black;
+  height: 48px;
+}
+
+#panels {
+  width: 100%;
+  height: calc(100% - 50px);
+  display: flex;
+  flex-direction: row;
 }
