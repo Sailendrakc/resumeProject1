@@ -15,6 +15,7 @@ export default function ChartPanel() {
   let { chartPanelNotifierFn, currentChartedSymbol } =
     useContext(notifyContext);
   let lastChartedSymbol = useRef();
+  let changeHeaderSymbolRef = useRef();
   let watchToken = useRef(Math.floor(Math.random() * 1000));
 
   useEffect(() => {
@@ -76,13 +77,26 @@ export default function ChartPanel() {
     if (candlestickData[0].symbol != lastChartedSymbol.current) {
       //new symbol, perform series.setData();
       candlestickSeries.current.setData(candlestickData);
-      chartRef.current.timeScale().fitContent();
-      chartRef.current.timeScale().scrollToRealTime();
+      //chartRef.current.timeScale().fitContent();
+      chartRef.current.timeScale().scrollToPosition(25, true);
+      lastChartedSymbol.current = candlestickData[0].symbol;
+      if (changeHeaderSymbolRef.current) {
+        changeHeaderSymbolRef.current(candlestickData[0].symbol);
+      }
     } else {
       candlestickSeries.current.update(candlestickData[0]);
     }
+  }
 
-    lastChartedSymbol.current = candlestickData[0].symbol;
+  function scrollToRealTime() {
+    if (chartRef.current) {
+      chartRef.current.timeScale().scrollToRealTime();
+      chartRef.current.timeScale().scrollToPosition(5, true);
+    }
+  }
+
+  function changeHeaderSymbol(setterFn) {
+    changeHeaderSymbolRef.current = setterFn;
   }
 
   //expose this function so Ebar can call it.
@@ -104,16 +118,39 @@ export default function ChartPanel() {
     watchPriceFn(symbol, updateChart, watchToken.current);
   }
   /*
-        <h4>Interval: 1 Hour</h4>
-        <h4 className="chartedSymbol"></h4>
-        <button className="resetChartPosition">Reset Chart Position</button>
+
    */
 
   return (
     <div className="chartPanel">
-      <div className="chartHeader"></div>
-
+      <ChartHeader
+        changeHeaderSymbolFn={changeHeaderSymbol}
+        scrollToRealTime={scrollToRealTime}
+      ></ChartHeader>
       <div className="chartHolder" ref={containerRef}></div>
+    </div>
+  );
+}
+
+function ChartHeader({ changeHeaderSymbolFn, scrollToRealTime }) {
+  let [symbol, setSymbol] = useState();
+
+  if (!symbol) {
+    changeHeaderSymbolFn(setSymbol);
+  }
+
+  return (
+    <div className="chartHeader">
+      <h4 className="chartedSymbol">{symbol}</h4>
+      <h4>1 Hour</h4>
+      <button
+        className="resetChartPosition"
+        onClick={() => {
+          scrollToRealTime();
+        }}
+      >
+        Reset Chart
+      </button>
     </div>
   );
 }

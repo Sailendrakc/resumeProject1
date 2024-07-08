@@ -2,6 +2,7 @@
   width: 100%;
   height: Calc(100% - 120px);
   font-size: 0px;
+  min-height: 355px;
 }
 
 .leftPanel {
@@ -17,6 +18,7 @@
   font-size: 16px;
   background-color: #1f2547;
   margin-right: 10px;
+  border-radius: 15px;
 }
 
 .chartPanel {
@@ -29,10 +31,11 @@
   margin-top: 10px;
   margin-right: 10px;
   flex-grow: 1;
+  border-radius: 15px;
 }
 
 .depthPanel {
-  width: 26.9%;
+  width: 26.5%;
   max-width: 200px;
   min-width: 175px;
   margin-top: 10px;
@@ -40,6 +43,7 @@
   background-color: #1f2547;
   font-size: 16px;
   margin-right: 10px;
+  border-radius: 15px;
 }
 
 .sellerOB,
@@ -49,6 +53,7 @@
   flex-direction: column;
   row-gap: 3px;
   min-width: 150px;
+  height: 50%;
 }
 
 #footerPanel {
@@ -65,7 +70,7 @@
 
 .coinPrice {
   display: inline-block;
-  width: 50%;
+  width: 45%;
   text-align: center;
 }
 
@@ -77,8 +82,9 @@
 
 .removeBarBtn {
   display: inline-block;
-  width: 10%;
+  width: calc(15% - 4px);
   cursor: pointer;
+  margin-right: 3px;
 }
 
 .removeBarBtn:hover {
@@ -91,12 +97,20 @@
 
 .eBarHolder {
   display: inline-block;
-  width: calc(100% - 2px);
+  width: calc(100% - 5px);
   border: 1px solid white;
-  height: 48px;
+  max-height: 48px;
   align-content: center;
   cursor: pointer;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 150px;
+  max-width: 205px;
+  border-radius: 8px;
+}
+
+.eBarHolder:hover {
+  border-color: orange;
+  transform: scaleX(1.01);
 }
 
 #leftAndMainPanels {
@@ -122,6 +136,14 @@
   height: 24px;
   width: 30%;
   min-width: fit-content;
+  border-radius: 5px;
+  border: none;
+  margin-top: 3px;
+  text-align: center;
+}
+
+.searchBox:hover {
+  border: 1px solid orange;
 }
 
 .resultPanelWrapper {
@@ -143,11 +165,29 @@
   width: 100%;
   height: 30px;
   background-color: cadetblue;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
 }
 
 .chartHeader > h4 {
   display: inline-block;
   text-align: center;
+  color: white;
+}
+
+.resetChartPosition {
+  background-color: rgba(255, 0, 0, 0.3);
+}
+
+.resetChartPosition:hover {
+  transform: scaleX(1.05);
+  background-color: rgba(255, 0, 0, 0.7);
+  cursor: pointer;
 }
 
 .chartHolder {
@@ -156,12 +196,11 @@
 }
 
 .depthBarHolder {
-  height: 30px;
-  border: 1px solid black;
+  max-height: 30px;
   background-color: #1f2547;
   align-content: center;
   cursor: default;
-  flex-shrink: 0;
+  flex: 1;
 }
 
 .depthBarHolder > h4 {
@@ -202,10 +241,31 @@
   }
 }
 
+@media screen and (min-width: 721px) and (max-height: 590px) {
+  #header {
+    min-height: 30px;
+    text-align: center;
+    height: 10%;
+  }
+
+  #header > * {
+    display: inline-block;
+  }
+
+  #root {
+    height: calc(90% - 10px);
+  }
+
+  #footer {
+    flex: 1;
+  }
+}
+
 @media screen and (max-width: 720px) {
   .leftPanel {
     min-width: calc(100% - 10px);
-    height: 100px;
+    min-height: 10px;
+    height: min-content;
     flex-direction: row;
     flex-wrap: wrap;
     align-content: flex-start;
@@ -224,6 +284,7 @@
   .sellerOB,
   .buyerOB {
     width: calc(50% - 5px);
+    height: 100%;
   }
 
   .buyerOB {
@@ -252,7 +313,6 @@
 
   .eBarHolder {
     width: 150px;
-    height: 30px;
     margin-inline: 2px;
     margin-top: 2px;
   }
@@ -290,5 +350,9 @@
 
   .eBarHolder {
     width: 100%;
+  }
+
+  .chartHeader {
+    height: min-content;
   }
 }

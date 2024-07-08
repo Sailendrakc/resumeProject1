@@ -269,10 +269,10 @@ function processStreamMSG(data) {
   let parsedData;
   if (typeof data == typeof "a") {
     parsedData = JSON.parse(data);
-    console.log(
+    /*console.log(
       "Parsed stream data: " + new Date().toString() + " :",
       parsedData
-    );
+    );*/
   }
 
   //we only get confirmation of stream or actual stream here.
