@@ -1,7 +1,8 @@
-import { React, createContext, useContext, useRef, useState } from "react";
+import { React, useRef } from "react";
 import FooterPanel from "./FooterPanel.js";
 import LeftAndMainPanels from "./LeftAndMainPanels.js";
 import { notifyContext } from "./notifyContext.js";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 //This should provide context to all symbol list, watch and unwatch function to all childs.
 
@@ -21,6 +22,7 @@ export function App() {
       <>
         <LeftAndMainPanels />
         <FooterPanel />
+        <SpeedInsights />
       </>
     </notifyContext.Provider>
   );
