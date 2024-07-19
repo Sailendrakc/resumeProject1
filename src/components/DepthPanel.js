@@ -187,6 +187,7 @@ function DepthBar({ Amount, Price, isBuyer, callFn, index }) {
   let clasName = useRef("depthBarHolder sellerDepthBar");
   let [price, setPrice] = useState(Price);
   let [amount, setAmount] = useState(Amount);
+  let randomKey = useRef(Math.floor(Math.random() * 100));
 
   useEffect(() => {
     //pass the setter function so parent can call whenever state needs to be changed.
@@ -194,6 +195,7 @@ function DepthBar({ Amount, Price, isBuyer, callFn, index }) {
   }, []);
 
   function performUpdates(price, amount) {
+    randomKey.current = Math.floor(Math.random() * 100);
     setPrice(price);
     setAmount(amount);
   }
@@ -205,8 +207,12 @@ function DepthBar({ Amount, Price, isBuyer, callFn, index }) {
 
   return (
     <div className={clasName.current}>
-      <h4 className="depthAmount">{amount}</h4>
-      <h4 className="depthPrice">{price}</h4>
+      <h4 className="depthAmount" key={randomKey.current}>
+        {amount}
+      </h4>
+      <h4 className="depthPrice" key={randomKey.current + 1}>
+        {price}
+      </h4>
     </div>
   );
 }

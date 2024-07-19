@@ -24,7 +24,7 @@ export default function LeftPanel() {
       console.log(
         "Cannot add more than 10 symbols to watchlists, please remove some"
       ); //probably show this as notification etc
-      return;
+      return false;
     }
 
     if (shownsymbols.current.length == 0) {
@@ -41,6 +41,7 @@ export default function LeftPanel() {
     setReDraw((val) => {
       return !val;
     }); // now the leftPanel gonna reload.
+    return true;
   }
 
   function removeExtendedBar(symbol) {

@@ -16,8 +16,10 @@ export function Bar({ symbol, onBarAdd }) {
     <button
       className="addBarBtn"
       onClick={(e) => {
-        onBarAdd(symbol);
-        removeBar();
+        let success = onBarAdd(symbol);
+        if (success) {
+          removeBar();
+        }
       }}
     >
       {symbol}
